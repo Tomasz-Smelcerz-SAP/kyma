@@ -33,10 +33,14 @@ func (r reader) GetFullConfigMap() (map[string]string, error) {
 	var combined map[string]string
 
 	configmaps, err := r.getLabeledConfigMaps()
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 
 	secrets, err := r.getLabeledSecrets()
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 
 	for _, cMap := range configmaps {
 		for key, val := range cMap.Data {

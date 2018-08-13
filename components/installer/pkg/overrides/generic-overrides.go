@@ -26,7 +26,7 @@ func mergeIntoMap(keys []string, value string, dstMap map[string]interface{}) {
 	mergeIntoMap(keys[1:], value, nestedMap)
 }
 
-func mapToYaml(sourceMap map[string]string) string {
+func mapToYaml(sourceMap map[string]string) (string, error) {
 	mergedMap := map[string]interface{}{}
 
 	for key, value := range sourceMap {
@@ -34,5 +34,6 @@ func mapToYaml(sourceMap map[string]string) string {
 		mergeIntoMap(keys, value, mergedMap)
 	}
 
-	return yaml.Marshal(mergedMap)
+	res, err := yaml.Marshal(mergedMap)
+	return string(res), err
 }
