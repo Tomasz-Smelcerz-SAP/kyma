@@ -27,6 +27,10 @@ func mergeIntoMap(keys []string, value string, dstMap map[string]interface{}) {
 }
 
 func mapToYaml(sourceMap map[string]string) (string, error) {
+	if len(sourceMap) == 0 {
+		return "", nil
+	}
+
 	mergedMap := map[string]interface{}{}
 
 	for key, value := range sourceMap {
