@@ -2,11 +2,16 @@ package overrides
 
 import (
 	core "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/client-go/informers"
+	listers "k8s.io/client-go/listers/core/v1"
 )
 
-const label = "installer: overrides"
+const (
+	key   = "installer"
+	value = "overrides"
+)
 
 // ReaderInterface exposes functions
 type ReaderInterface interface {
@@ -14,15 +19,19 @@ type ReaderInterface interface {
 }
 
 type reader struct {
-	configmaps v1.ConfigMapInterface
-	secrets    v1.SecretInterface
+	configmaps listers.ConfigMapLister
+	secrets    listers.SecretLister
 }
 
 // NewReader returns a ready to use configmapClient
-func NewReader(namespace string, client v1.CoreV1Client) (ReaderInterface, error) {
+func NewReader(namespace string, kubeInformerFactory informers.SharedInformerFactory) (ReaderInterface, error) {
+
+	configmapLister := kubeInformerFactory.Core().V1().ConfigMaps().Lister()
+	secretLister := kubeInformerFactory.Core().V1().Secrets().Lister()
+
 	r := &reader{
-		configmaps: client.ConfigMaps(namespace),
-		secrets:    client.Secrets(namespace),
+		configmaps: configmapLister,
+		secrets:    secretLister,
 	}
 
 	return r, nil
@@ -33,10 +42,14 @@ func (r reader) GetFullConfigMap() (map[string]string, error) {
 	var combined map[string]string
 
 	configmaps, err := r.getLabeledConfigMaps()
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 
 	secrets, err := r.getLabeledSecrets()
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 
 	for _, cMap := range configmaps {
 		for key, val := range cMap.Data {
@@ -53,24 +66,42 @@ func (r reader) GetFullConfigMap() (map[string]string, error) {
 	return combined, nil
 }
 
-func (r reader) getLabeledConfigMaps() ([]core.ConfigMap, error) {
-	listOpts := meta_v1.ListOptions{
-		LabelSelector: label,
-	}
-	configmaps, err := r.configmaps.List(listOpts)
+func (r reader) getLabeledConfigMaps() ([]*core.ConfigMap, error) {
+
+	selector, err := getSelector()
 	if err != nil {
 		return nil, err
 	}
-	return configmaps.Items, nil
+
+	configmaps, err := r.configmaps.List(selector)
+	if err != nil {
+		return nil, err
+	}
+
+	return configmaps, nil
 }
 
-func (r reader) getLabeledSecrets() ([]core.Secret, error) {
-	listOpts := meta_v1.ListOptions{
-		LabelSelector: label,
-	}
-	secrets, err := r.secrets.List(listOpts)
+func (r reader) getLabeledSecrets() ([]*core.Secret, error) {
+
+	selector, err := getSelector()
 	if err != nil {
 		return nil, err
 	}
-	return secrets.Items, nil
+
+	secrets, err := r.secrets.List(selector)
+	if err != nil {
+		return nil, err
+	}
+	return secrets, nil
+}
+
+func getSelector() (labels.Selector, error) {
+
+	req, err := labels.NewRequirement(key, selection.Equals, []string{value})
+	if err != nil {
+		return nil, err
+	}
+	selector := labels.NewSelector().Add(*req)
+
+	return selector, nil
 }

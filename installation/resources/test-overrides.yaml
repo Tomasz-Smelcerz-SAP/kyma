@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kuba-test-secret
+  namespace: kyma-installer
+  labels:
+    installer: overrides
+type: Opaque
+data:
+  user: "a2FyYWthbgo="
+  password: "YXB1ZDEyMwo="
+  group: "VHJhaWxlciBQYXJrIEJveXMK"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kuba-test-configmap
+  namespace: kyma-installer
+  labels:
+    installer: overrides
+data:
+  aaa: "zzz"
+  bbb: "xxx"
+  ccc: "yyy"
+  dddeee: "ttt"
