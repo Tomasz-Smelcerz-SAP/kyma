@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	key   = "installer"
-	value = "overrides"
+	key       = "installer"
+	value     = "overrides"
+	namespace = "kyma-installer"
 )
 
 // ReaderInterface exposes functions
@@ -19,19 +20,19 @@ type ReaderInterface interface {
 }
 
 type reader struct {
-	configmaps listers.ConfigMapLister
-	secrets    listers.SecretLister
+	configmapLister listers.ConfigMapLister
+	secretLister    listers.SecretLister
 }
 
 // NewReader returns a ready to use configmapClient
-func NewReader(namespace string, kubeInformerFactory informers.SharedInformerFactory) (ReaderInterface, error) {
+func NewReader(kubeInformerFactory informers.SharedInformerFactory) (ReaderInterface, error) {
 
 	configmapLister := kubeInformerFactory.Core().V1().ConfigMaps().Lister()
 	secretLister := kubeInformerFactory.Core().V1().Secrets().Lister()
 
 	r := &reader{
-		configmaps: configmapLister,
-		secrets:    secretLister,
+		configmapLister: configmapLister,
+		secretLister:    secretLister,
 	}
 
 	return r, nil
@@ -73,7 +74,7 @@ func (r reader) getLabeledConfigMaps() ([]*core.ConfigMap, error) {
 		return nil, err
 	}
 
-	configmaps, err := r.configmaps.List(selector)
+	configmaps, err := r.configmapLister.ConfigMaps(namespace).List(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func (r reader) getLabeledSecrets() ([]*core.Secret, error) {
 		return nil, err
 	}
 
-	secrets, err := r.secrets.List(selector)
+	secrets, err := r.secretLister.Secrets(namespace).List(selector)
 	if err != nil {
 		return nil, err
 	}

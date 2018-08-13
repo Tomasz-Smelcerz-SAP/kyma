@@ -1,6 +1,7 @@
 package main
 
 import (
+	"k8s.io/client-go/tools/cache"
 	"flag"
 	"log"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/kyma-project/kyma/components/installer/pkg/finalizer"
 	"github.com/kyma-project/kyma/components/installer/pkg/installation"
 	"github.com/kyma-project/kyma/components/installer/pkg/kymahelm"
+	"github.com/kyma-project/kyma/components/installer/pkg/overrides"
 	"github.com/kyma-project/kyma/components/installer/pkg/release"
 	"github.com/kyma-project/kyma/components/installer/pkg/servicecatalog"
 	"github.com/kyma-project/kyma/components/installer/pkg/toolkit"
@@ -80,6 +82,22 @@ func main() {
 
 	kubeInformerFactory.Start(stop)
 	internalInformerFactory.Start(stop)
+
+	overridesReader, err := overrides.NewReader(kubeInformerFactory)
+	if err != nil {
+		log.Fatalf("Unable to create reader. Error: %v", err)
+	}
+	cMap, err := overridesReader.GetFullConfigMap()
+	if err != nil {
+		log.Fatalf("Unable to create full config map. Error: %v", err)
+	}
+	log.Println("################")
+	log.Println("################")
+	log.Println()
+	log.Printf("CONFIGMAP: %v", cMap)
+	log.Println()
+	log.Println("################")
+	log.Println("################")
 
 	installationController.Run(2, stop)
 	releaseController.Run(2, stop)

@@ -40,6 +40,7 @@ kubectl apply -f ${CURRENT_DIR}/../../resources/cluster-prerequisites/resource-q
 bash ${CURRENT_DIR}/install-tiller.sh
 
 kubectl apply -f ${CURRENT_DIR}/../resources/installer.yaml -n "kyma-installer"
+kubectl apply -f ${CURRENT_DIR}/../resources/test-overrides.yaml
 
 ${CURRENT_DIR}/is-ready.sh kube-system k8s-app kube-dns
 
