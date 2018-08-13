@@ -6,6 +6,14 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+func unmarshallToNestedMap(value string) (map[string]interface{}, error) {
+	target := map[string]interface{}{}
+
+	err := yaml.Unmarshal([]byte(value), &target)
+
+	return target, err
+}
+
 //Merges value into given map, introducing intermediate "nested" maps for every intermediate key.
 func mergeIntoMap(keys []string, value string, dstMap map[string]interface{}) {
 	currentKey := keys[0]
