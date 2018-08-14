@@ -82,7 +82,7 @@ func main() {
 	kubeInformerFactory.Start(stop)
 	internalInformerFactory.Start(stop)
 
-	overridesReader, err := overrides.NewReader(kubeInformerFactory)
+	overridesReader, err := overrides.NewReader(kubeClient)
 	if err != nil {
 		log.Fatalf("Unable to create reader. Error: %v", err)
 	}

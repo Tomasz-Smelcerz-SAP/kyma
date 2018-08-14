@@ -23,3 +23,13 @@ data:
   bbb: "xxx"
   ccc: "yyy"
   dddeee: "ttt"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kuba-test-configmap-2
+  namespace: kyma-installer
+  labels:
+    installer: overrides
+data:
+  ppp: "uuu z drugiej config mapy"
