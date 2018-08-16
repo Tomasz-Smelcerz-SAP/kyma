@@ -23,18 +23,22 @@ global:
 `
 
 // GetGlobalOverrides .
-func GetGlobalOverrides(installationData *config.InstallationData) (string, error) {
+func GetGlobalOverrides(installationData *config.InstallationData) (OverridesMap, error) {
 
 	tmpl, err := template.New("").Parse(globalsTplStr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
 	err = tmpl.Execute(buf, installationData)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return buf.String(), nil
+	oMap, err := unmarshallToNestedMap(buf.String())
+	if err != nil {
+		return nil, err
+	}
+	return oMap, nil
 }

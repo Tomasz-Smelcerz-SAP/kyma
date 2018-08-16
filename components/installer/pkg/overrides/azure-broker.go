@@ -24,29 +24,33 @@ type azureParams struct {
 }
 
 // EnableAzureBroker provides Azure parameters from Vault
-func EnableAzureBroker(installationData *config.InstallationData) (string, error) {
+func EnableAzureBroker(installationData *config.InstallationData) (OverridesMap, error) {
 
 	if !hasAzureParams(installationData) {
-		return "", nil
+		return OverridesMap{}, nil
 	}
 
 	azureParams, err := getAzureParams(installationData)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	tmpl, err := template.New("").Parse(tplStr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
 	err = tmpl.Execute(buf, azureParams)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return buf.String(), nil
+	oMap, err := unmarshallToNestedMap(buf.String())
+	if err != nil {
+		return nil, err
+	}
+	return oMap, nil
 }
 
 func getAzureParams(installationData *config.InstallationData) (*azureParams, error) {

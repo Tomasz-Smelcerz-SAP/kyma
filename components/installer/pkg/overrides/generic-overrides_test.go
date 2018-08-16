@@ -12,7 +12,7 @@ func TestGenericOverrides(t *testing.T) {
 		Convey("Should not fail for empty map", func() {
 
 			overridesMap := map[string]string{}
-			res, err := mapToYaml(overridesMap)
+			res, err := flatMapToYaml(overridesMap)
 			So(err, ShouldBeNil)
 			So(res, ShouldBeBlank)
 		})
@@ -29,7 +29,7 @@ func TestGenericOverrides(t *testing.T) {
 			overridesMap["a.b.c"] = "100"
 			overridesMap["a.b.d"] = "200"
 			overridesMap["a.b.e"] = "300"
-			res, err := mapToYaml(overridesMap)
+			res, err := flatMapToYaml(overridesMap)
 			So(err, ShouldBeNil)
 			So(res, ShouldEqual, expected)
 		})
@@ -53,7 +53,7 @@ h:
 			overridesMap["a.b.e"] = "300"
 			overridesMap["global.foo"] = "bar"
 			overridesMap["h.o.o"] = "xyz"
-			res, err := mapToYaml(overridesMap)
+			res, err := flatMapToYaml(overridesMap)
 			So(err, ShouldBeNil)
 			So(res, ShouldEqual, expected)
 		})

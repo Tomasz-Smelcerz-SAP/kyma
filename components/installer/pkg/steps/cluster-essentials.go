@@ -3,7 +3,6 @@ package steps
 import (
 	"log"
 	"path"
-	"strings"
 
 	"github.com/kyma-project/kyma/components/installer/pkg/config"
 	"github.com/kyma-project/kyma/components/installer/pkg/consts"
@@ -62,18 +61,18 @@ func (steps *InstallationSteps) UpdateClusterEssentials(installationData *config
 }
 
 func (steps *InstallationSteps) getClusterEssentialsOverrides(installationData *config.InstallationData, chartDir string) string {
-	var allOverrides []string
+	allOverrides := OverridesMap{}
 
 	globalOverrides, err := overrides.GetGlobalOverrides(installationData)
 	steps.errorHandlers.LogError("Couldn't get global overrides: ", err)
-	allOverrides = append(allOverrides, globalOverrides)
+	overrides.MergeMaps(allOverrides, globalOverrides)
 
 	fileOverrides := steps.getStaticFileOverrides(installationData, chartDir)
 	if fileOverrides.HasOverrides() == true {
 		fileOverridesStr, err := fileOverrides.GetOverrides()
 		steps.errorHandlers.LogError("Couldn't get additional overrides: ", err)
-		allOverrides = append(allOverrides, *fileOverridesStr)
+		overrides.MergeMaps(allOverrides, fileOverrides)
 	}
 
-	return strings.Join(allOverrides, "\n")
+	return overrides.strings.Join(allOverrides, "\n")
 }

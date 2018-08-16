@@ -6,16 +6,28 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-func unmarshallToNestedMap(value string) (map[string]interface{}, error) {
-	target := map[string]interface{}{}
+//Map of overrides. Values can be nested maps (of the same type) or strings
+type OverridesMap map[string]interface{}
+
+func unmarshallToNestedMap(value string) (OverridesMap, error) {
+	target := OverridesMap{}
 
 	err := yaml.Unmarshal([]byte(value), &target)
 
 	return target, err
 }
 
+func overridesMapToYaml(oMap OverridesMap) (string, error) {
+	res, err := yaml.Marshal(oMap)
+	return string(res), err
+}
+
+func MergeMaps(base, newOverrides OverridesMap) {
+	//TODO: Implement
+}
+
 //Merges value into given map, introducing intermediate "nested" maps for every intermediate key.
-func mergeIntoMap(keys []string, value string, dstMap map[string]interface{}) {
+func mergeIntoMap(keys []string, value string, dstMap OverridesMap) {
 	currentKey := keys[0]
 	//Last key points directly to string value
 	if len(keys) == 1 {
@@ -24,28 +36,32 @@ func mergeIntoMap(keys []string, value string, dstMap map[string]interface{}) {
 	}
 
 	//All keys but the last one should point to a nested map
-	nestedMap, ok := dstMap[currentKey].(map[string]interface{})
+	nestedMap, ok := dstMap[currentKey].(OverridesMap)
 
 	if !ok {
-		nestedMap = map[string]interface{}{}
+		nestedMap = OverridesMap{}
 		dstMap[currentKey] = nestedMap
 	}
 
 	mergeIntoMap(keys[1:], value, nestedMap)
 }
 
-func mapToYaml(sourceMap map[string]string) (string, error) {
-	if len(sourceMap) == 0 {
-		return "", nil
-	}
+func MarshallToYaml(oMap OverridesMap) string {
+	//TODO: Implement
+	return ""
+}
 
-	mergedMap := map[string]interface{}{}
+//Used to convert external "flat" overrides into OverridesMap.
+func flatMapToOverridesMap(sourceMap map[string]string) OverridesMap {
+	mergedMap := OverridesMap{}
+	if len(sourceMap) == 0 {
+		return mergedMap
+	}
 
 	for key, value := range sourceMap {
 		keys := strings.Split(key, ".")
 		mergeIntoMap(keys, value, mergedMap)
 	}
 
-	res, err := yaml.Marshal(mergedMap)
-	return string(res), err
+	return mergedMap
 }
