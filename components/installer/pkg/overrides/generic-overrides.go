@@ -6,9 +6,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-//Map of overrides. Values can be nested maps (of the same type) or strings
+//OverridesMap is a map of overrides. Values in the map can be nested maps (of the same type) or strings
 type OverridesMap map[string]interface{}
 
+//ToMap converts yaml to OverridesMap. Supports only map-like yamls (no lists!)
 func ToMap(value string) (OverridesMap, error) {
 	target := OverridesMap{}
 
@@ -19,16 +20,67 @@ func ToMap(value string) (OverridesMap, error) {
 	return target, nil
 }
 
+//ToYaml converts OverridesMap to yaml
 func ToYaml(oMap OverridesMap) (string, error) {
+	if len(oMap) == 0 {
+		return "", nil
+	}
+
 	res, err := yaml.Marshal(oMap)
 	if err != nil {
 		return "", err
 	}
 	return string(res), nil
 }
+
+//MergeMaps merges all values from newOnes map into baseMap, overwriting final keys (string values) if both maps contain such entries
 func MergeMaps(baseMap, newOnes OverridesMap) {
 	//TODO: Implement
-	//for key, value := range newOnes
+	for newKey, newVal := range newOnes {
+		baseVal, contains := baseMap[newKey]
+		if contains {
+			//baseMap contain the entry.
+
+			aString, isString := baseVal.(string)
+			if isString {
+				baseMap[newKey] = aString
+			} else {
+			}
+
+		} else {
+			//baseMap does not contain such entry. Just use newVal and we're done.
+			baseMap[newKey] = newVal
+		}
+	}
+}
+
+// Flattens given OverridesMap. The keys in result map will contain all intermediate keys joined with dots, e.g.: "istio.ingress.service.gateway: xyz"
+func _flattenMap(oMap OverridesMap, keys string, result map[string]string) {
+
+	var prefix string
+
+	if len(keys) == 0 {
+		prefix = ""
+	} else {
+		prefix = keys + "."
+	}
+
+	for key, value := range oMap {
+
+		aString, isString := value.(string)
+		if isString {
+			result[prefix+key] = aString
+		} else {
+			//Nested map!
+			nestedMap := value.(map[string]interface{})
+			_flattenMap(nestedMap, prefix+key, result)
+		}
+	}
+}
+func FlattenMap(oMap OverridesMap) map[string]string {
+	res := map[string]string{}
+	_flattenMap(oMap, "", res)
+	return res
 }
 
 //Merges value into given map, introducing intermediate "nested" maps for every intermediate key.
