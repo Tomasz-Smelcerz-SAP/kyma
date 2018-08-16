@@ -20,18 +20,10 @@ service:
 
 // GetHmcDefaultOverrides returns values overrides for hmc default remote environment
 func GetHmcDefaultOverrides() (OverridesMap, error) {
-	oMap, err := unmarshallToNestedMap(hmcDefault)
-	if err != nil {
-		return nil, err
-	}
-	return oMap, nil
+	return ToMap(hmcDefault)
 }
 
 // GetEcDefaultOverrides returns values overrides for ec default remote environment
 func GetEcDefaultOverrides() (OverridesMap, error) {
-	oMap, err := unmarshallToNestedMap(ecDefault)
-	if err != nil {
-		return nil, err
-	}
-	return oMap, nil
+	return ToMap(ecDefault)
 }

@@ -9,21 +9,26 @@ import (
 //Map of overrides. Values can be nested maps (of the same type) or strings
 type OverridesMap map[string]interface{}
 
-func unmarshallToNestedMap(value string) (OverridesMap, error) {
+func ToMap(value string) (OverridesMap, error) {
 	target := OverridesMap{}
 
 	err := yaml.Unmarshal([]byte(value), &target)
-
-	return target, err
+	if err != nil {
+		return nil, err
+	}
+	return target, nil
 }
 
-func overridesMapToYaml(oMap OverridesMap) (string, error) {
+func ToYaml(oMap OverridesMap) (string, error) {
 	res, err := yaml.Marshal(oMap)
-	return string(res), err
+	if err != nil {
+		return "", err
+	}
+	return string(res), nil
 }
-
-func MergeMaps(base, newOverrides OverridesMap) {
+func MergeMaps(baseMap, newOnes OverridesMap) {
 	//TODO: Implement
+	//for key, value := range newOnes
 }
 
 //Merges value into given map, introducing intermediate "nested" maps for every intermediate key.
@@ -44,11 +49,6 @@ func mergeIntoMap(keys []string, value string, dstMap OverridesMap) {
 	}
 
 	mergeIntoMap(keys[1:], value, nestedMap)
-}
-
-func MarshallToYaml(oMap OverridesMap) string {
-	//TODO: Implement
-	return ""
 }
 
 //Used to convert external "flat" overrides into OverridesMap.

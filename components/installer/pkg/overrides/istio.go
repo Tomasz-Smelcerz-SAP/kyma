@@ -30,11 +30,7 @@ func GetIstioOverrides(installationData *config.InstallationData) (OverridesMap,
 		return nil, err
 	}
 
-	oMap, err := unmarshallToNestedMap(buf.String())
-	if err != nil {
-		return nil, err
-	}
-	return oMap, nil
+	return ToMap(buf.String())
 }
 
 func hasIPAddress(installationData *config.InstallationData) bool {

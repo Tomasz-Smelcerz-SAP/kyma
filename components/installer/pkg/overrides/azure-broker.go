@@ -46,11 +46,7 @@ func EnableAzureBroker(installationData *config.InstallationData) (OverridesMap,
 		return nil, err
 	}
 
-	oMap, err := unmarshallToNestedMap(buf.String())
-	if err != nil {
-		return nil, err
-	}
-	return oMap, nil
+	return ToMap(buf.String())
 }
 
 func getAzureParams(installationData *config.InstallationData) (*azureParams, error) {

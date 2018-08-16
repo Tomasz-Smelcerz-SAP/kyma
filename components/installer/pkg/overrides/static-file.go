@@ -68,13 +68,7 @@ func (clusterStaticFile *ClusterStaticFile) GetOverrides() (OverridesMap, error)
 		return nil, err
 	}
 
-	overridesStr := string(fileBytes)
-
-	oMap, err := unmarshallToNestedMap(overridesStr)
-	if err != nil {
-		return nil, err
-	}
-	return oMap, nil
+	return ToMap(string(fileBytes))
 }
 
 func (clusterStaticFile *ClusterStaticFile) getFilePath() string {
