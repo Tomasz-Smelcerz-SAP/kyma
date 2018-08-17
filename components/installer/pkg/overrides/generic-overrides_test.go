@@ -10,12 +10,110 @@ func TestGenericOverrides(t *testing.T) {
 
 	Convey("GenericOverrides", t, func() {
 
+		Convey("MergeMaps function", func() {
+
+			Convey("Should merge two maps with non-overlapping keys", func() {
+				const m1 = `a:
+  b:
+    j: "100"
+    k: "200"
+    l: "300"
+`
+				const m2 = `p:
+  q:
+    x1: "1100"
+    y1: "2100"
+    z1: "3100"
+`
+				const expected = `a:
+  b:
+    j: "100"
+    k: "200"
+    l: "300"
+p:
+  q:
+    x1: "1100"
+    y1: "2100"
+    z1: "3100"
+`
+				baseMap, err := ToMap(m1)
+				So(err, ShouldBeNil)
+				map2, err := ToMap(m2)
+				So(err, ShouldBeNil)
+				MergeMaps(baseMap, map2)
+				res, err := ToYaml(baseMap)
+				So(err, ShouldBeNil)
+				So(res, ShouldEqual, expected)
+			})
+
+			Convey("Should merge two maps with overlapping keys", func() {
+				const m1 = `a:
+  b:
+    j: "100"
+    k: "200"
+    l: 300
+`
+				const m2 = `a:
+  b:
+    i: "1100"
+    j: 100
+    k:
+      x1: foo
+      y1:
+        z1: bar
+    l: "300"
+
+`
+				const expected = `a:
+  b:
+    i: "1100"
+    j: 100
+    k:
+      x1: foo
+      y1:
+        z1: bar
+    l: "300"
+`
+				baseMap, err := ToMap(m1)
+				So(err, ShouldBeNil)
+				map2, err := ToMap(m2)
+				So(err, ShouldBeNil)
+				MergeMaps(baseMap, map2)
+				res, err := ToYaml(baseMap)
+				So(err, ShouldBeNil)
+				So(res, ShouldEqual, expected)
+			})
+
+			Convey("Should merge a map with an empty one", func() {
+				const m1 = `a:
+  b:
+    j: "100"
+    k: 200
+    l: abc
+`
+				const expected = `a:
+  b:
+    j: "100"
+    k: 200
+    l: abc
+`
+				baseMap, err := ToMap(m1)
+				So(err, ShouldBeNil)
+				map2, err := ToMap("")
+				So(err, ShouldBeNil)
+				MergeMaps(baseMap, map2)
+				res, err := ToYaml(baseMap)
+				So(err, ShouldBeNil)
+				So(res, ShouldEqual, expected)
+			})
+		})
+
 		Convey("ToYaml function", func() {
 
 			Convey("Should not fail for empty map", func() {
 
 				inputMap := map[string]string{}
-				res, err := ToYaml(flatMapToOverridesMap(inputMap))
+				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
 				So(res, ShouldBeBlank)
 			})
@@ -32,7 +130,7 @@ func TestGenericOverrides(t *testing.T) {
 				inputMap["a.b.c"] = "100"
 				inputMap["a.b.d"] = "200"
 				inputMap["a.b.e"] = "300"
-				res, err := ToYaml(flatMapToOverridesMap(inputMap))
+				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
 				So(res, ShouldEqual, expected)
 			})
@@ -52,7 +150,7 @@ func TestGenericOverrides(t *testing.T) {
 				inputMap["a.b.c"] = "100"
 				inputMap["a.b.d"] = "200"
 				inputMap["a.b.e"] = "300\n400\n500\n"
-				res, err := ToYaml(flatMapToOverridesMap(inputMap))
+				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
 				So(res, ShouldEqual, expected)
 			})
@@ -76,7 +174,7 @@ h:
 				inputMap["a.b.e"] = "300"
 				inputMap["global.foo"] = "bar"
 				inputMap["h.o.o"] = "xyz"
-				res, err := ToYaml(flatMapToOverridesMap(inputMap))
+				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
 				So(res, ShouldEqual, expected)
 			})
