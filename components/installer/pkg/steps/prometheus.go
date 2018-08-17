@@ -74,6 +74,7 @@ func (steps *InstallationSteps) UpdatePrometheus(installationData *config.Instal
 	return nil
 }
 func (steps *InstallationSteps) getPrometheusOverrides(installationData *config.InstallationData, chartDir string) (string, error) {
+	//TODO: this does not get globalOverrides... Is that a problem if global will carry all external ones (overrides.yaml + from configMaps/secrets?)
 	allOverrides := overrides.OverridesMap{}
 
 	staticOverrides := steps.getStaticFileOverrides(installationData, chartDir)

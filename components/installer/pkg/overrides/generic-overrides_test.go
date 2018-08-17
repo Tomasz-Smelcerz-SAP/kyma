@@ -108,6 +108,30 @@ p:
 				So(err, ShouldBeNil)
 				So(res, ShouldEqual, expected)
 			})
+
+			Convey("Should merge empty map with non-empty one", func() {
+				const m2 = `a:
+  b:
+    j: "100"
+    k: 200
+    l: abc
+`
+				const expected = `a:
+  b:
+    j: "100"
+    k: 200
+    l: abc
+`
+				baseMap, err := ToMap("")
+				So(err, ShouldBeNil)
+				So(len(baseMap), ShouldEqual, 0)
+				map2, err := ToMap(m2)
+				So(err, ShouldBeNil)
+				MergeMaps(baseMap, map2)
+				res, err := ToYaml(baseMap)
+				So(err, ShouldBeNil)
+				So(res, ShouldEqual, expected)
+			})
 		})
 
 		Convey("ToYaml function", func() {

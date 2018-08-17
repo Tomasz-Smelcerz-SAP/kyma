@@ -13,6 +13,11 @@ type OverridesMap map[string]interface{}
 func ToMap(value string) (OverridesMap, error) {
 	target := OverridesMap{}
 
+	if value == "" {
+		//Otherwise, nil Map is returned by yaml.Unmarshal
+		return target, nil
+	}
+
 	err := yaml.Unmarshal([]byte(value), &target)
 	if err != nil {
 		return nil, err
@@ -54,7 +59,7 @@ func UnflattenMap(sourceMap map[string]string) OverridesMap {
 	return mergedMap
 }
 
-//Helper function that handles merge logic
+//Helper function that contains merge logic
 func mergeInto(baseMap map[string]interface{}, key string, overrideVal interface{}) {
 
 	baseVal := baseMap[key]
@@ -79,7 +84,7 @@ func MergeMaps(baseMap, overridesMap OverridesMap) {
 			//baseMap contain the entry.
 			mergeInto(baseMap, key, overrideVal)
 		} else {
-			//baseMap does not contain such entry. Just use newVal and we're done.
+			//baseMap does not contain such entry. Just use overrideVal and we're done.
 			baseMap[key] = overrideVal
 		}
 	}
