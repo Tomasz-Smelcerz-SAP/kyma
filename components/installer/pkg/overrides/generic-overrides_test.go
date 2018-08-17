@@ -84,7 +84,7 @@ p:
 				So(res, ShouldEqual, expected)
 			})
 
-			Convey("Should merge a map with an empty one", func() {
+			Convey("Should merge non-empty map with an empty one", func() {
 				const m1 = `a:
   b:
     j: "100"
@@ -101,6 +101,8 @@ p:
 				So(err, ShouldBeNil)
 				map2, err := ToMap("")
 				So(err, ShouldBeNil)
+				So(len(map2), ShouldEqual, 0)
+
 				MergeMaps(baseMap, map2)
 				res, err := ToYaml(baseMap)
 				So(err, ShouldBeNil)

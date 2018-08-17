@@ -54,32 +54,33 @@ func UnflattenMap(sourceMap map[string]string) OverridesMap {
 	return mergedMap
 }
 
-func mergeInto(baseMap map[string]interface{}, key string, newVal interface{}) {
+//Helper function that handles merge logic
+func mergeInto(baseMap map[string]interface{}, key string, overrideVal interface{}) {
 
 	baseVal := baseMap[key]
 
-	bVal, baseIsMap := baseVal.(map[string]interface{})
-	nVal, newIsMap := newVal.(map[string]interface{})
+	bMapVal, baseIsMap := baseVal.(map[string]interface{})
+	oMapVal, newIsMap := overrideVal.(map[string]interface{})
 
 	if baseIsMap && newIsMap {
-		//Two maps case! Mutual Reccursion here :)
-		MergeMaps(bVal, nVal)
+		//Two maps case! Reccursion happens here!
+		MergeMaps(bMapVal, oMapVal)
 	} else {
-		//All other cases
-		baseMap[key] = newVal
+		//All other cases, even "pathological" one: When bMapVal is a Map but overrideVal is a string.
+		baseMap[key] = overrideVal
 	}
 }
 
 //MergeMaps merges all values from newOnes map into baseMap, overwriting final keys (string values) if both maps contain such entries
-func MergeMaps(baseMap, newOnes OverridesMap) {
-	for key, newVal := range newOnes {
+func MergeMaps(baseMap, overridesMap OverridesMap) {
+	for key, overrideVal := range overridesMap {
 		_, baseContains := baseMap[key]
 		if baseContains {
 			//baseMap contain the entry.
-			mergeInto(baseMap, key, newVal)
+			mergeInto(baseMap, key, overrideVal)
 		} else {
 			//baseMap does not contain such entry. Just use newVal and we're done.
-			baseMap[key] = newVal
+			baseMap[key] = overrideVal
 		}
 	}
 }
