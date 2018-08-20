@@ -25,6 +25,7 @@ type InstallationData struct {
 	AzureBrokerClientSecret    string
 	ClusterTLSKey              string
 	ClusterTLSCert             string
+	ClusterTLSPEMCert          string
 	RemoteEnvCa                string
 	RemoteEnvCaKey             string
 	RemoteEnvIP                string
@@ -39,6 +40,10 @@ type InstallationData struct {
 	EtcdBackupABSKey           string
 	Components                 map[string]struct{}
 	IsLocalInstallation        bool
+	VictorOpsApiKey            string
+	VictorOpsRoutingKey        string
+	SlackChannel               string
+	SlackApiUrl                string
 }
 
 // NewInstallationData .
@@ -61,6 +66,7 @@ func NewInstallationData(installation *v1alpha1.Installation, installationConfig
 		AzureBrokerClientSecret:    installationConfig.AzureBrokerClientSecret,
 		ClusterTLSKey:              installationConfig.ClusterTLSKey,
 		ClusterTLSCert:             installationConfig.ClusterTLSCert,
+		ClusterTLSPEMCert:          installationConfig.ClusterTLSPEMCert,
 		RemoteEnvCa:                installationConfig.RemoteEnvCa,
 		RemoteEnvCaKey:             installationConfig.RemoteEnvCaKey,
 		RemoteEnvIP:                installationConfig.RemoteEnvIP,
@@ -75,6 +81,10 @@ func NewInstallationData(installation *v1alpha1.Installation, installationConfig
 		EtcdBackupABSKey:           installationConfig.EtcdBackupABSKey,
 		Components:                 convertToMap(installationConfig.ComponentsList),
 		IsLocalInstallation:        installationConfig.IsLocalInstallation,
+		VictorOpsApiKey:            installationConfig.VictorOpsApiKey,
+		VictorOpsRoutingKey:        installationConfig.VictorOpsRoutingKey,
+		SlackChannel:               installationConfig.SlackChannel,
+		SlackApiUrl:                installationConfig.SlackApiUrl,
 	}
 	return res, nil
 }

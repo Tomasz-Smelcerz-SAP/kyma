@@ -49,6 +49,7 @@ func (sc *InstallationDataCreator) WithEmptyDomain() *InstallationDataCreator {
 func (sc *InstallationDataCreator) WithCert(cert, certKey string) *InstallationDataCreator {
 	sc.installationData.ClusterTLSCert = cert
 	sc.installationData.ClusterTLSKey = certKey
+	sc.installationData.ClusterTLSPEMCert = cert
 	return sc
 }
 
@@ -122,6 +123,20 @@ func (sc *InstallationDataCreator) WithEtcdOperator(enabled, storageAccount, sto
 func (sc *InstallationDataCreator) WithEtcdBackupABSContainerName(path string) *InstallationDataCreator {
 	sc.installationData.EtcdBackupABSContainerName = path
 
+	return sc
+}
+
+// WithVictorOpsCredentials sets value for VictorOpsApiKey and VictorOpsRoutingKey properties
+func (sc *InstallationDataCreator) WithVictorOpsCredentials(routingkey, apikey string) *InstallationDataCreator {
+	sc.installationData.VictorOpsApiKey = apikey
+	sc.installationData.VictorOpsRoutingKey = routingkey
+	return sc
+}
+
+// WithSlackCredentials sets value for SlackChannel and SlackApiUrl properties
+func (sc *InstallationDataCreator) WithSlackCredentials(channel, apiurl string) *InstallationDataCreator {
+	sc.installationData.SlackChannel = channel
+	sc.installationData.SlackApiUrl = apiurl
 	return sc
 }
 

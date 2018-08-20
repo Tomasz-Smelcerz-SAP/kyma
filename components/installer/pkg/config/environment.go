@@ -19,6 +19,7 @@ type installationConfig struct {
 	AzureBrokerClientSecret    string
 	ClusterTLSKey              string
 	ClusterTLSCert             string
+	ClusterTLSPEMCert          string
 	RemoteEnvCa                string
 	RemoteEnvCaKey             string
 	UITestUser                 string
@@ -29,6 +30,10 @@ type installationConfig struct {
 	EtcdBackupABSKey           string
 	ComponentsList             string
 	IsLocalInstallation        bool
+	VictorOpsApiKey            string
+	VictorOpsRoutingKey        string
+	SlackChannel               string
+	SlackApiUrl                string
 }
 
 // GetInstallationConfig returns all non-secret installation parameters from the Installer environment variables
@@ -46,6 +51,7 @@ func GetInstallationConfig() *installationConfig {
 		AzureBrokerClientSecret:    os.Getenv("AZURE_BROKER_CLIENT_SECRET"),
 		ClusterTLSKey:              os.Getenv("TLS_KEY"),
 		ClusterTLSCert:             os.Getenv("TLS_CERT"),
+		ClusterTLSPEMCert:          os.Getenv("TLS_PEM_CERT"),
 		RemoteEnvCa:                os.Getenv("REMOTE_ENV_CA"),
 		RemoteEnvCaKey:             os.Getenv("REMOTE_ENV_CA_KEY"),
 		UITestUser:                 os.Getenv("UI_TEST_USER"),
@@ -56,6 +62,10 @@ func GetInstallationConfig() *installationConfig {
 		EtcdBackupABSKey:           os.Getenv("ETCD_BACKUP_ABS_KEY"),
 		ComponentsList:             os.Getenv("COMPONENT_LIST"),
 		IsLocalInstallation:        isLocalInstallation(os.Getenv("IS_LOCAL_INSTALLATION")),
+		VictorOpsApiKey:            os.Getenv("VICTOR_OPS_API_KEY_VALUE"),
+		VictorOpsRoutingKey:        os.Getenv("VICTOR_OPS_ROUTING_KEY_VALUE"),
+		SlackChannel:               os.Getenv("SLACK_CHANNEL_VALUE"),
+		SlackApiUrl:                os.Getenv("SLACK_API_URL_VALUE"),
 	}
 }
 
