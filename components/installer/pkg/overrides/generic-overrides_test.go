@@ -1,6 +1,7 @@
 package overrides
 
 import (
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -13,19 +14,22 @@ func TestGenericOverrides(t *testing.T) {
 		Convey("MergeMaps function", func() {
 
 			Convey("Should merge two maps with non-overlapping keys", func() {
-				const m1 = `a:
+				const base = `
+a:
   b:
     j: "100"
     k: "200"
     l: "300"
 `
-				const m2 = `p:
+				const override = `
+p:
   q:
     x1: "1100"
     y1: "2100"
     z1: "3100"
 `
-				const expected = `a:
+				const expected = `
+a:
   b:
     j: "100"
     k: "200"
@@ -36,24 +40,28 @@ p:
     y1: "2100"
     z1: "3100"
 `
-				baseMap, err := ToMap(m1)
+				baseMap, err := ToMap(base)
 				So(err, ShouldBeNil)
-				map2, err := ToMap(m2)
+
+				overrideMap, err := ToMap(override)
 				So(err, ShouldBeNil)
-				MergeMaps(baseMap, map2)
+
+				MergeMaps(baseMap, overrideMap)
 				res, err := ToYaml(baseMap)
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 			Convey("Should merge two maps with overlapping keys", func() {
-				const m1 = `a:
+				const base = `
+a:
   b:
     j: "100"
     k: "200"
     l: 300
 `
-				const m2 = `a:
+				const override = `
+a:
   b:
     i: "1100"
     j: 100
@@ -64,7 +72,8 @@ p:
     l: "300"
 
 `
-				const expected = `a:
+				const expected = `
+a:
   b:
     i: "1100"
     j: 100
@@ -74,49 +83,56 @@ p:
         z1: bar
     l: "300"
 `
-				baseMap, err := ToMap(m1)
+				baseMap, err := ToMap(base)
 				So(err, ShouldBeNil)
-				map2, err := ToMap(m2)
+
+				overrideMap, err := ToMap(override)
 				So(err, ShouldBeNil)
-				MergeMaps(baseMap, map2)
+
+				MergeMaps(baseMap, overrideMap)
 				res, err := ToYaml(baseMap)
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 			Convey("Should merge non-empty map with an empty one", func() {
-				const m1 = `a:
+				const base = `
+a:
   b:
     j: "100"
     k: 200
     l: abc
 `
-				const expected = `a:
+				const expected = `
+a:
   b:
     j: "100"
     k: 200
     l: abc
 `
-				baseMap, err := ToMap(m1)
+				baseMap, err := ToMap(base)
 				So(err, ShouldBeNil)
-				map2, err := ToMap("")
-				So(err, ShouldBeNil)
-				So(len(map2), ShouldEqual, 0)
 
-				MergeMaps(baseMap, map2)
+				emptyMap, err := ToMap("")
+				So(err, ShouldBeNil)
+				So(len(emptyMap), ShouldEqual, 0)
+
+				MergeMaps(baseMap, emptyMap)
 				res, err := ToYaml(baseMap)
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 			Convey("Should merge empty map with non-empty one", func() {
-				const m2 = `a:
+				const override = `
+a:
   b:
     j: "100"
     k: 200
     l: abc
 `
-				const expected = `a:
+				const expected = `
+a:
   b:
     j: "100"
     k: 200
@@ -125,12 +141,14 @@ p:
 				baseMap, err := ToMap("")
 				So(err, ShouldBeNil)
 				So(len(baseMap), ShouldEqual, 0)
-				map2, err := ToMap(m2)
+
+				overrideMap, err := ToMap(override)
 				So(err, ShouldBeNil)
-				MergeMaps(baseMap, map2)
+
+				MergeMaps(baseMap, overrideMap)
 				res, err := ToYaml(baseMap)
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 		})
 
@@ -146,7 +164,8 @@ p:
 
 			Convey("Should merge several entries into one yaml", func() {
 
-				const expected = `a:
+				const expected = `
+a:
   b:
     c: "100"
     d: "200"
@@ -158,12 +177,13 @@ p:
 				inputMap["a.b.e"] = "300"
 				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 			Convey("Should handle multi-line string correctly", func() {
 
-				const expected = `a:
+				const expected = `
+a:
   b:
     c: "100"
     d: "200"
@@ -176,14 +196,16 @@ p:
 				inputMap["a.b.c"] = "100"
 				inputMap["a.b.d"] = "200"
 				inputMap["a.b.e"] = "300\n400\n500\n"
+
 				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 			Convey("Should handle global values", func() {
 
-				const expected = `a:
+				const expected = `
+a:
   b:
     c: "100"
     d: "200"
@@ -200,9 +222,10 @@ h:
 				inputMap["a.b.e"] = "300"
 				inputMap["global.foo"] = "bar"
 				inputMap["h.o.o"] = "xyz"
+
 				res, err := ToYaml(UnflattenMap(inputMap))
 				So(err, ShouldBeNil)
-				So(res, ShouldEqual, expected)
+				So(res, ShouldEqual, nlnl(expected))
 			})
 
 		})
@@ -261,4 +284,9 @@ a:
 			})
 		})
 	})
+}
+
+//nlnl == [n]o [l]eading [n]ew [l]ine
+func nlnl(s string) string {
+	return strings.TrimLeft(s, "\n")
 }
