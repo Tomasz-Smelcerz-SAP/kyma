@@ -25,7 +25,7 @@ func ToMap(value string) (OverridesMap, error) {
 	return target, nil
 }
 
-//ToYaml converts OverridesMap to yaml
+//ToYaml converts OverridesMap to YAML
 func ToYaml(oMap OverridesMap) (string, error) {
 	if len(oMap) == 0 {
 		return "", nil
@@ -38,13 +38,14 @@ func ToYaml(oMap OverridesMap) (string, error) {
 	return string(res), nil
 }
 
+//Flattens an OverridesMap into a map of aggregated keys and value (to entries like, for example: "istio.ingress.service.gateway: xyz")
 func FlattenMap(oMap OverridesMap) map[string]string {
 	res := map[string]string{}
-	_flattenMap(oMap, "", res)
+	flattenMap(oMap, "", res)
 	return res
 }
 
-//Used to convert external "flat" overrides into OverridesMap.
+//UnflattenMap converts external "flat" overrides into OverridesMap. Opposite of FlattenMap function.
 func UnflattenMap(sourceMap map[string]string) OverridesMap {
 	mergedMap := OverridesMap{}
 	if len(sourceMap) == 0 {
@@ -59,39 +60,67 @@ func UnflattenMap(sourceMap map[string]string) OverridesMap {
 	return mergedMap
 }
 
-//Helper function that contains merge logic
-func mergeInto(baseMap map[string]interface{}, key string, overrideVal interface{}) {
-
-	baseVal := baseMap[key]
-
-	bMapVal, baseIsMap := baseVal.(map[string]interface{})
-	oMapVal, newIsMap := overrideVal.(map[string]interface{})
-
-	if baseIsMap && newIsMap {
-		//Two maps case! Reccursion happens here!
-		MergeMaps(bMapVal, oMapVal)
-	} else {
-		//All other cases, even "pathological" one: When bMapVal is a Map but overrideVal is a string.
-		baseMap[key] = overrideVal
-	}
-}
-
-//MergeMaps merges all values from newOnes map into baseMap, overwriting final keys (string values) if both maps contain such entries
+//MergeMaps merges all values from overridesMap map into baseMap, adding and/or overwriting final keys (string values) if both maps contain such entries.
+//baseMap WILL be modified during merge.
+//overridesMap won't be modified by future merges, since a deep-copy of it's nested maps are used for merging such nested maps.
 func MergeMaps(baseMap, overridesMap OverridesMap) {
-	for key, overrideVal := range overridesMap {
-		_, baseContains := baseMap[key]
-		if baseContains {
-			//baseMap contain the entry.
-			mergeInto(baseMap, key, overrideVal)
+
+	//Helper function to deep-copy nested maps
+	putValueToMap := func(baseMap map[string]interface{}, key string, overrideVal interface{}) {
+		overrideValMap, overrideIsMap := overrideVal.(map[string]interface{})
+		if overrideIsMap {
+			baseMap[key] = deepCopyMap(overrideValMap)
 		} else {
-			//baseMap does not contain such entry. Just use overrideVal and we're done.
 			baseMap[key] = overrideVal
 		}
 	}
+
+	for key, overrideVal := range overridesMap {
+		//Can be nil
+		baseVal := baseMap[key]
+
+		baseMapVal, baseIsMap := baseVal.(map[string]interface{})
+		ovrrMapVal, newIsMap := overrideVal.(map[string]interface{})
+
+		if baseIsMap && newIsMap {
+			//Two maps case! Reccursion happens here!
+			MergeMaps(baseMapVal, ovrrMapVal)
+		} else {
+			//All other cases, even "pathological" one, when baseMap[key] is a map and overrideVal is a string.
+			putValueToMap(baseMap, key, overrideVal)
+		}
+	}
+
+}
+
+//Recursively copies the map. Used to ensure immutability of input maps when merging.
+func deepCopyMap(src map[string]interface{}) map[string]interface{} {
+	dst := map[string]interface{}{}
+
+	//Helper recursive function
+	var cp func(src map[string]interface{}, dst map[string]interface{})
+
+	cp = func(src map[string]interface{}, dst map[string]interface{}) {
+		for key, value := range src {
+
+			nestedMap, isMap := value.(map[string]interface{})
+			if isMap {
+				//Nested map!
+				nestedCopy := map[string]interface{}{}
+				cp(nestedMap, nestedCopy)
+				dst[key] = nestedCopy
+			} else {
+				dst[key] = value
+			}
+		}
+	}
+	cp(src, dst)
+
+	return dst
 }
 
 // Flattens given OverridesMap. The keys in result map will contain all intermediate keys joined with dots, e.g.: "istio.ingress.service.gateway: xyz"
-func _flattenMap(oMap OverridesMap, keys string, result map[string]string) {
+func flattenMap(oMap OverridesMap, keys string, result map[string]string) {
 
 	var prefix string
 
@@ -109,7 +138,7 @@ func _flattenMap(oMap OverridesMap, keys string, result map[string]string) {
 		} else {
 			//Nested map!
 			nestedMap := value.(map[string]interface{})
-			_flattenMap(nestedMap, prefix+key, result)
+			flattenMap(nestedMap, prefix+key, result)
 		}
 	}
 }
@@ -124,9 +153,9 @@ func mergeIntoMap(keys []string, value string, dstMap OverridesMap) {
 	}
 
 	//All keys but the last one should point to a nested map
-	nestedMap, ok := dstMap[currentKey].(OverridesMap)
+	nestedMap, isMap := dstMap[currentKey].(OverridesMap)
 
-	if !ok {
+	if !isMap {
 		nestedMap = OverridesMap{}
 		dstMap[currentKey] = nestedMap
 	}

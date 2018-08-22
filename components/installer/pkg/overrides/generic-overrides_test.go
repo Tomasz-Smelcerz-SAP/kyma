@@ -283,6 +283,59 @@ a:
 				So(res["a.b.e"], ShouldEqual, "300")
 			})
 		})
+
+		Convey("copyMap function", func() {
+
+			Convey("Should copy nested map(s)", func() {
+				const value = `
+a:
+  b:
+    c: 100
+    d:
+      e: "200"
+`
+				src, err := ToMap(value)
+				So(err, ShouldBeNil)
+
+				srcA, isMap := src["a"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				srcB, isMap := srcA["b"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				srcD, isMap := srcB["d"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				copy := deepCopyMap(src)
+
+				copyA, isMap := copy["a"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				copyB, isMap := copyA["b"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				copyD, isMap := copyB["d"].(map[string]interface{})
+				So(isMap, ShouldBeTrue)
+
+				//copy and src should be equal
+				So(srcB["c"], ShouldEqual, 100)
+				So(copyB["c"], ShouldEqual, 100)
+
+				So(srcD["e"], ShouldEqual, "200")
+				So(copyD["e"], ShouldEqual, "200")
+
+				//once we modify the copy...
+				newD := map[string]interface{}{}
+				newD["e"] = 500
+				copyB["d"] = newD
+
+				//source shoud stay the same, copy should be changed
+				srcD, _ = srcB["d"].(map[string]interface{})
+				copyD, _ = copyB["d"].(map[string]interface{})
+				So(srcD["e"], ShouldEqual, "200")
+				So(copyD["e"], ShouldEqual, 500)
+			})
+		})
 	})
 }
 
