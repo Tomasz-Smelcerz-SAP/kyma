@@ -11,7 +11,9 @@ kubectl:
     pullPolicy: IfNotPresent
 
 # Only kube2iam: change the AWS_ACCOUNT_ID and HEPTIO_ARK_ROLE_NAME
-podAnnotations: {}
+podAnnotations:
+  sidecar.istio.io/inject: "false"
+
 #  iam.amazonaws.com/role: arn:aws:iam::<AWS_ACCOUNT_ID>:role/<HEPTIO_ARK_ROLE_NAME>
 
 rbac:
