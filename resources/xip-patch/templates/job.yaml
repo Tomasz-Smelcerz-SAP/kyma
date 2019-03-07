@@ -25,3 +25,4 @@ spec:
           value: {{ .Values.global.domainName }}
         - name: TLS_CERT
           value: {{ .Values.global.tlsCrt }}
+
