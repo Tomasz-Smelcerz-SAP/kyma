@@ -86,6 +86,7 @@ EOF
     fi
 }
 
+#This does not exist on install (takes fallback value), but it exists on update!
 INGRESS_TLS_CERT="${INGRESS_TLS_CERT:-$GLOBAL_TLS_CERT}"
 INGRESS_TLS_KEY="${INGRESS_TLS_KEY:-$GLOBAL_TLS_KEY}"
 INGRESS_DOMAIN="${INGRESS_DOMAIN:-$GLOBAL_DOMAIN}"
@@ -108,3 +109,11 @@ fi
 createOverridesConfigMap
 
 patchTlsCrtSecret
+
+TEMP=$(mktemp /tmp/cert-file.XXXXXXXX)
+sed 's/{{.Values.global.ingress.domainName}}/'$INGRESS_DOMAIN'/' /etc/cert-config/config.yaml.tpl > ${TEMP}
+
+echo DEBUG:
+cat ${TEMP}
+kubectl create -f ${TEMP}
+rm ${TEMP}

@@ -14,7 +14,9 @@ metadata:
   namespace: istio-system
 spec:
   secretName: kyma-gateway-certs
-  commonName: "*.{{.Values.global.ingress.domainName}}"
+  commonName: "{{.Values.global.ingress.domainName}}"
+  dnsNames:
+  - "*.{{.Values.global.ingress.domainName}}"
   isCA: true
   issuerRef:
     name: selfsigning-issuer

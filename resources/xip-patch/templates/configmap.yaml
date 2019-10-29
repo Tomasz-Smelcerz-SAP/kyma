@@ -4,6 +4,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: kyma-cert-manager-config
 data:
-  config.yaml: |-
-{{.Files.Get "files/cert-manager-config.yaml" | printf "%s" | indent 4}}
+  config.yaml.tpl: |-
+{{.Files.Get "files/cert-manager-config.yaml.tpl" | printf "%s" | indent 4}}
 
