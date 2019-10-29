@@ -44,3 +44,11 @@ spec:
               name: net-global-overrides
               key: global.ingress.tlsKey
               optional: true
+        volumeMounts:
+          - mountPath: /etc/cert-config
+            name: cert-config
+            readOnly: true
+      volumes:
+        - name: cert-config
+          configMap:
+            name: kyma-cert-manager-config

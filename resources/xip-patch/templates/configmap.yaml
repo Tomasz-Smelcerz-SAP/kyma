@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: istio-system
+  name: kyma-cert-manager-config
+data:
+  config.yaml: |-
+{{.Files.Get "files/cert-manager-config.yaml" | printf "%s" | indent 4}}
+
