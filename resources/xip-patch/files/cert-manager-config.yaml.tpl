@@ -20,7 +20,7 @@ spec:
     kind: Issuer
   commonName: "{{.Values.global.ingress.domainName}}"
   organization:
-  - kymacia
+  - kymcia
   dnsNames:
   - "*.{{.Values.global.ingress.domainName}}"
 
