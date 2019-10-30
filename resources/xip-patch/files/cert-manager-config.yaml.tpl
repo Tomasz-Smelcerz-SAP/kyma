@@ -13,6 +13,8 @@ metadata:
   name: kyma-gateway-crt
   namespace: istio-system
 spec:
+  duration: 5m
+  renewBefore: 4m
   secretName: kyma-gateway-certs
   commonName: "{{.Values.global.ingress.domainName}}"
   dnsNames:
