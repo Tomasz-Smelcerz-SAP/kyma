@@ -41,6 +41,22 @@ generateXipDomain() {
 }
 
 generateCerts() {
+
+    # Generate a Root CA private key
+    $ openssl genrsa -out ca.key 2048
+
+    # Create a Root CA: self signed Certificate, valid for 10yrs with the 'signing' option set
+    $ openssl req -x509 -new -nodes -key ca.key -subj "/CN=kymulec" -days 3650 -reqexts v3_req -extensions v3_ca -out ca.crt
+
+    # Store Root CA key pair as secret (necessary for cert-manager to issue certificates based on the Root CA)
+    kubectl create secret tls kyma-ca-key-pair \
+      --cert=ca.crt \
+      --key=ca.key \
+      --namespace=istio-system
+
+    # export Root CA public key so internal and external clients can understand certs issued by cert-manager issued by the root CA
+    export INGRESS_TLS_CERT=$(base64 < ca.crt)
+
     TEMP=$(mktemp /tmp/cert-file.XXXXXXXX)
     sed 's/{{.Values.global.ingress.domainName}}/'$INGRESS_DOMAIN'/' /etc/cert-config/config.yaml.tpl > ${TEMP}
 
@@ -104,9 +120,9 @@ if [ -z "${INGRESS_DOMAIN}" ] ; then
     INGRESS_DOMAIN=$(generateXipDomain)
 fi
 
-if [ -z "${INGRESS_TLS_CERT}" ] ; then
+#if [ -z "${INGRESS_TLS_CERT}" ] ; then
     generateCerts
-fi
+#fi
 
 createOverridesConfigMap
 

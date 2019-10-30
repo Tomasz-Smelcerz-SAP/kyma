@@ -1,11 +1,12 @@
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
-kind: ClusterIssuer
+kind: Issuer
 metadata:
-  name: selfsigning-issuer
+  name: kyma-ca-issuer
   namespace: istio-system
 spec:
-  selfSigned: {}
+  ca:
+    secretName: kyma-ca-key-pair
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
@@ -14,11 +15,12 @@ metadata:
   namespace: istio-system
 spec:
   secretName: kyma-gateway-certs
+  issuerRef:
+    name: kyma-ca-issuer
+    kind: Issuer
   commonName: "{{.Values.global.ingress.domainName}}"
+  organization:
+  - kymacia
   dnsNames:
   - "*.{{.Values.global.ingress.domainName}}"
-  isCA: true
-  issuerRef:
-    name: selfsigning-issuer
-    kind: ClusterIssuer
 
