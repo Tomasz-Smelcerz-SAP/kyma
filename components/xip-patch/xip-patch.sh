@@ -41,18 +41,13 @@ generateXipDomain() {
 }
 
 generateCerts() {
+    TEMP=$(mktemp /tmp/cert-file.XXXXXXXX)
+    sed 's/{{.Values.global.ingress.domainName}}/'$INGRESS_DOMAIN'/' /etc/cert-config/config.yaml.tpl > ${TEMP}
 
-    XIP_PATCH_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    KEY_PATH="${XIP_PATCH_DIR}/key.pem"
-    CERT_PATH="${XIP_PATCH_DIR}/cert.pem"
-
-    generateCertificatesForDomain "${INGRESS_DOMAIN}" "${KEY_PATH}" "${CERT_PATH}"
-
-    TLS_CERT=$(base64 "${CERT_PATH}" | tr -d '\n')
-    TLS_KEY=$(base64 "${KEY_PATH}" | tr -d '\n')
-
-    rm "${CERT_PATH}"
-    rm "${KEY_PATH}"
+    echo DEBUG:
+    cat ${TEMP}
+    kubectl create -f ${TEMP}
+    rm ${TEMP}
 }
 
 createOverridesConfigMap() {
@@ -102,18 +97,9 @@ fi
 
 if [ -z "${INGRESS_TLS_CERT}" ] ; then
     generateCerts
-    INGRESS_TLS_CERT=${TLS_CERT}
-    INGRESS_TLS_KEY=${TLS_KEY}
 fi
 
 createOverridesConfigMap
 
 patchTlsCrtSecret
 
-TEMP=$(mktemp /tmp/cert-file.XXXXXXXX)
-sed 's/{{.Values.global.ingress.domainName}}/'$INGRESS_DOMAIN'/' /etc/cert-config/config.yaml.tpl > ${TEMP}
-
-echo DEBUG:
-cat ${TEMP}
-kubectl create -f ${TEMP}
-rm ${TEMP}
