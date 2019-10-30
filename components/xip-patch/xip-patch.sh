@@ -58,7 +58,7 @@ generateCerts() {
       --namespace=istio-system
 
     # export Root CA public key so internal and external clients can understand certs issued by cert-manager and signed by the Root CA
-    export INGRESS_TLS_CERT=$(base64 -w 0 < /tmp/ca.crt)
+    export INGRESS_TLS_CERT=$(base64 < /tmp/ca.crt | tr -d '\n')
 
     TEMP=$(mktemp /tmp/cert-file.XXXXXXXX)
     sed 's/{{.Values.global.ingress.domainName}}/'$INGRESS_DOMAIN'/' /etc/cert-config/config.yaml.tpl > ${TEMP}
