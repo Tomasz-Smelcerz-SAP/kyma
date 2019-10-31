@@ -123,9 +123,9 @@ if [ -z "${INGRESS_DOMAIN}" ] ; then
     INGRESS_DOMAIN=$(generateXipDomain)
 fi
 
-#if [ -z "${INGRESS_TLS_CERT}" ] ; then
+if [ -z "${INGRESS_TLS_CERT}" ] ; then
     generateCerts
-#fi
+fi
 
 createOverridesConfigMap
 
