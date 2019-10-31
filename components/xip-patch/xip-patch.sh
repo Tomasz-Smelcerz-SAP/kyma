@@ -49,7 +49,7 @@ generateCerts() {
     openssl genrsa -out /tmp/ca.key 2048
 
     # Create a Root CA: self signed Certificate, valid for 10yrs with the 'signing' option set
-    openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=kymulec" -days 3650 -reqexts v3_req -extensions v3_ca -out /tmp/ca.crt
+    openssl req -x509 -new -nodes -key /tmp/ca.key -subj "/CN=$INGRESS_DOMAIN" -days 3650 -reqexts v3_req -extensions v3_ca -out /tmp/ca.crt
 
     # Store Root CA key pair as secret (necessary for cert-manager to issue certificates based on the Root CA)
     kubectl create secret tls kyma-ca-key-pair \
