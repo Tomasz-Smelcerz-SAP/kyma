@@ -3,6 +3,7 @@ package api
 import (
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/avast/retry-go"
 	"github.com/pkg/errors"
@@ -43,6 +44,13 @@ func (h *Tester) TestSecuredEndpoint(url, token string, headerName string) error
 func (h *Tester) TestUnsecuredEndpoint(url string) error {
 	return h.withRetries(func() (*http.Response, error) {
 		return h.client.Get(url)
+	}, httpOkPredicate)
+}
+
+func (h *Tester) TestUnsecuredEndpointPost(url string, data string) error {
+	r := strings.NewReader(data)
+	return h.withRetries(func() (*http.Response, error) {
+		return h.client.Post(url, "text/html; charset=UTF-8", r)
 	}, httpOkPredicate)
 }
 
